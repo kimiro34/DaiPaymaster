@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "ethereumjs-util": "^7.1.3",
+    "ethers": "^5.5.2"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.4"
+  },
+  "type": "module"
+}
