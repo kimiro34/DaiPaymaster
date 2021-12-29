@@ -1,5 +1,10 @@
 import { ethers, BigNumberish } from "ethers";
-import { keccak256, defaultAbiCoder, solidityPack } from "ethers/lib/utils.js";
+import {
+  keccak256,
+  defaultAbiCoder,
+  toUtf8Bytes,
+  solidityPack,
+} from "ethers/lib/utils.js";
 import { ecsign } from "ethereumjs-util";
 
 const getPermitDigest = (
@@ -10,10 +15,9 @@ const getPermitDigest = (
   },
   nonce: BigNumberish,
   deadline: BigNumberish,
-  allowed: Boolean
+  allowed: Boolean,
+  DOMAIN_SEPARATOR: string
 ) => {
-  const DOMAIN_SEPARATOR =
-    "0x16c71d5e724b4895d1eda159ed52657b98b9383418cdf9872697474064bbc728";
   const PERMIT_TYPEHASH =
     "0xea2aa0a1be11a07ed86d755c93467f4f82362b452371d1ba94d1715123511acb";
   return keccak256(
@@ -60,18 +64,6 @@ const daiAbi = [
       { indexed: false, internalType: "uint256", name: "wad", type: "uint256" },
     ],
     name: "Approval",
-    type: "event",
-  },
-  {
-    anonymous: true,
-    inputs: [
-      { indexed: true, internalType: "bytes4", name: "sig", type: "bytes4" },
-      { indexed: true, internalType: "address", name: "usr", type: "address" },
-      { indexed: true, internalType: "bytes32", name: "arg1", type: "bytes32" },
-      { indexed: true, internalType: "bytes32", name: "arg2", type: "bytes32" },
-      { indexed: false, internalType: "bytes", name: "data", type: "bytes" },
-    ],
-    name: "LogNote",
     type: "event",
   },
   {
@@ -322,7 +314,7 @@ const daiAbi = [
   },
 ];
 
-const daiAddress = "0x307b3c3ebfba36a0c1828e0208c22c42a5380acc";
+const daiAddress = "0x80c46abd031dc4fa51bc0f869dd465843cec0a7d";
 
 const provider = new ethers.providers.JsonRpcProvider(
   "https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
@@ -350,8 +342,19 @@ const approve = {
 
 const contractName = await daiContract.name();
 const nonce = await daiContract.nonces(approve.owner);
-const permitDigest = getPermitDigest(approve, nonce, deadline, allowed);
+const DOMAIN_SEPARATOR = await daiContract.DOMAIN_SEPARATOR();
+const permitDigest = getPermitDigest(
+  approve,
+  nonce,
+  deadline,
+  allowed,
+  DOMAIN_SEPARATOR
+);
+console.log("permit digest: ", permitDigest);
 const { v, r, s } = sign(permitDigest, ownerPrivateKey);
+console.log("V: ", v);
+console.log("r: ", r);
+console.log("s: ", s);
 
 await daiWithSigner.permit(
   approve.owner,
@@ -366,4 +369,8 @@ await daiWithSigner.permit(
 
 // const dai = ethers.utils.parseUnits("1.0", 18);
 
-await daiWithSigner.transferFrom(approve.owner, approve.spender, 1);
+await daiWithSigner.transferFrom(
+  approve.owner,
+  "0xb870dA79B48B4AF8C5d6Cc163Da8d5D260EfC576",
+  1
+);
