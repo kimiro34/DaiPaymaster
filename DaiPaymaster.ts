@@ -367,10 +367,10 @@ await daiWithSigner.permit(
   s
 );
 
-// const dai = ethers.utils.parseUnits("1.0", 18);
+const dai = ethers.utils.parseUnits("1.0", 18);
 
 await daiWithSigner.transferFrom(
   approve.owner,
   "0xb870dA79B48B4AF8C5d6Cc163Da8d5D260EfC576",
-  1
+  dai
 );
